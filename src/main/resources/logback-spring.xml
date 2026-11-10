@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <!-- 应用名和日志目录都允许通过环境变量覆盖，服务器部署时不用改包内配置。 -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="jitsi-meet-api"/>
+    <property name="LOG_PATH" value="${LOG_PATH:-logs}"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/${APP_NAME}.log"/>
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/>
+
+    <!-- 控制台日志用于 systemd/journalctl 或前台启动时快速排查。 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 文件日志按天滚动，避免单个日志文件长期运行后过大。 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 业务包保持 INFO，后续排查接口链路时可临时通过环境配置提升到 DEBUG。 -->
+    <logger name="com.jitsimeet.api" level="${APP_LOG_LEVEL:-INFO}"/>
+
+    <!-- MyBatis 默认 INFO，避免生产环境输出过多 SQL 细节。 -->
+    <logger name="com.baomidou.mybatisplus" level="INFO"/>
+
+    <root level="${ROOT_LOG_LEVEL:-INFO}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

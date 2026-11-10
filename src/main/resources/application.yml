@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:9000}
+  servlet:
+    context-path: ${API_CONTEXT_PATH:/mapi}
+
+spring:
+  application:
+    name: jitsi-meet-api
+  datasource:
+    url: ${JITSI_MEET_DB_URL:jdbc:sqlite:data/jitsi-meet-api.sqlite.db}
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-sqlite.sql
+      # SQLite 的 ADD COLUMN 不支持 IF NOT EXISTS，表结构迁移语句依赖该选项幂等执行。
+      continue-on-error: true
+
+mybatis-plus:
+  type-handlers-package: com.jitsimeet.api.config.typehandler
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+jitsi-token:
+  role-check-secret: ${JITSI_ROLE_CHECK_SECRET:}
+  app-id: ${JITSI_TOKEN_APP_ID:zhsz}
+  app-secret: ${JITSI_TOKEN_APP_SECRET:change-me}
+  domain: ${JITSI_TOKEN_DOMAIN:192.168.199.203}
+  ttl-hours: ${JITSI_TOKEN_TTL_HOURS:168}
+
+# Lifecycle observation only: no route or lifecycle schema unless explicitly enabled.
+# Dedicated credentials/domain scopes must be supplied separately; no default secret.
+lifecycle:
+  enabled: false
